@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+[[ $# -gt 0 ]] && cd "$1"
+
+OUTPUT="pool/${DIST}-${ARCH}/$1"
+
+gbp buildpackage \
+  --git-ignore-branch \
+  --git-ignore-new \
+  --git-export-dir="../${OUTPUT}" \
+  --git-prebuild='install-build-deps' \
+  --git-builder='debuild -I -i -us -uc'
+
+echo "Build artifacts found in ${OUTPUT}/:"
+ls -1hF "../${OUTPUT}"
