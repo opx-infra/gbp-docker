@@ -1,4 +1,7 @@
-all: darwin linux
+all:
+	go build
+
+release: darwin linux
 
 darwin: dbp-darwin-amd64
 
@@ -13,4 +16,4 @@ dbp-linux-amd64: main.go
 clean:
 	rm -rf dbp-*
 
-.PHONY: all darwin linux clean
+.PHONY: all release darwin linux clean
