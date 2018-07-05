@@ -10,7 +10,7 @@ import (
 
 	"github.com/ahmetalpbalkan/dexec"
 	docker "github.com/fsouza/go-dockerclient"
-	flag "github.com/ogier/pflag"
+	flag "github.com/spf13/pflag"
 )
 
 var name = fmt.Sprintf(
@@ -67,6 +67,7 @@ func main() {
 }
 
 func init() {
+	// Parse CLI arguments / environment
 	var currentUser, err = user.Current()
 	if err != nil {
 		log.Fatal(err)
