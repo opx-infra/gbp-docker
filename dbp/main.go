@@ -13,7 +13,9 @@ import (
 	flag "github.com/ogier/pflag"
 )
 
-var name = fmt.Sprintf("%s-dbp-%s", os.ExpandEnv("$USER"), path.Base(os.ExpandEnv("$PWD")))
+var name = fmt.Sprintf(
+	"%s-dbp-%s", os.ExpandEnv("$USER"), path.Base(os.ExpandEnv("$PWD")),
+)
 
 var (
 	client    docker.Client
@@ -33,25 +35,23 @@ func main() {
 	}
 
 	// Configure container
-	method, _ := dexec.ByCreatingContainer(
-		docker.CreateContainerOptions{
-			Name: name,
-			Config: &docker.Config{
-				Env: []string{
-					"DIST=" + dist,
-					"ARCH=" + arch,
-					"UID=" + uid,
-					"GID=" + gid,
-					"EXTRA_SOURCES=" + sources,
-				},
-				Image: "opxhub/gbp",
+	method, _ := dexec.ByCreatingContainer(docker.CreateContainerOptions{
+		Name: name,
+		Config: &docker.Config{
+			Env: []string{
+				"DIST=" + dist,
+				"ARCH=" + arch,
+				"UID=" + uid,
+				"GID=" + gid,
+				"EXTRA_SOURCES=" + sources,
 			},
-			HostConfig: &docker.HostConfig{
-				AutoRemove: true,
-				Binds:      []string{os.ExpandEnv("$PWD") + ":/mnt"},
-			},
+			Image: "opxhub/gbp",
 		},
-	)
+		HostConfig: &docker.HostConfig{
+			AutoRemove: true,
+			Binds:      []string{os.ExpandEnv("$PWD") + ":/mnt"},
+		},
+	})
 
 	// Set container command and attach stdout/stderr
 	execClient := dexec.Docker{Client: client}
@@ -75,13 +75,8 @@ func init() {
 	flag.StringVarP(&dist, "distribution", "d", "stretch", "Debian distribution")
 	flag.StringVarP(&uid, "uid", "u", currentUser.Uid, "User ID")
 	flag.StringVarP(&gid, "gid", "g", currentUser.Gid, "Group ID")
-	flag.StringVarP(
-		&sources,
-		"sources",
-		"s",
-		os.ExpandEnv("$EXTRA_SOURCES"),
-		"Extra sources to pull build dependencies from",
-	)
+	flag.StringVarP(&sources, "sources", "s", os.ExpandEnv("$EXTRA_SOURCES"),
+		"Extra sources to pull build dependencies from")
 
 	flag.Parse()
 
@@ -109,6 +104,7 @@ func init() {
 			if err != nil {
 				log.Fatal(err)
 			}
+
 			for _, c := range running {
 				log.Println("Removing your container", c.Names[0])
 				err = client.RemoveContainer(docker.RemoveContainerOptions{
