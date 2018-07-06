@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"os/user"
@@ -10,6 +9,7 @@ import (
 
 	"github.com/ahmetalpbalkan/dexec"
 	docker "github.com/fsouza/go-dockerclient"
+	log "github.com/sirupsen/logrus"
 	flag "github.com/spf13/pflag"
 )
 
@@ -18,7 +18,6 @@ var name = fmt.Sprintf(
 )
 
 var (
-	client    docker.Client
 	arch      string
 	dist      string
 	uid       string
@@ -28,13 +27,13 @@ var (
 )
 
 func main() {
-	// Instantiate docker client
+	log.Debug("Getting docker client")
 	client, err := docker.NewClientFromEnv()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// Configure container
+	log.Debug("Configuring container")
 	method, _ := dexec.ByCreatingContainer(docker.CreateContainerOptions{
 		Name: name,
 		Config: &docker.Config{
@@ -48,22 +47,34 @@ func main() {
 			Image: "opxhub/gbp",
 		},
 		HostConfig: &docker.HostConfig{
-			AutoRemove: true,
-			Binds:      []string{os.ExpandEnv("$PWD") + ":/mnt"},
+			Binds: []string{os.ExpandEnv("$PWD") + ":/mnt"},
 		},
 	})
 
-	// Set container command and attach stdout/stderr
+	log.Debug("Setting container command")
 	execClient := dexec.Docker{Client: client}
 	cmd := execClient.Command(method, "buildpackage", buildPath)
-	cmd.Stderr = os.Stderr
+	log.Debug("Setting container stdout/stderr to our stdout/stderr")
+	cmd.Stderr = os.Stdout
 	cmd.Stdout = os.Stdout
 
-	// Run the command inside the container
+	log.WithFields(log.Fields{
+		"cmd":  cmd.Path,
+		"args": cmd.Args,
+	}).Debug("Running")
 	if err := cmd.Start(); err != nil {
-		log.Fatal(err)
+		log.Fatal(err.Error())
 	}
-	cmd.Wait()
+	if err := cmd.Wait(); err != nil {
+		if exiterr, ok := err.(*dexec.ExitError); ok {
+			log.WithFields(log.Fields{
+				"code": exiterr.ExitCode,
+			}).Fatal("Build failed")
+		} else {
+			log.Fatal(err.Error())
+		}
+	}
+	log.Debug("Container exited successfully")
 }
 
 func init() {
@@ -79,12 +90,33 @@ func init() {
 	flag.StringVarP(&sources, "sources", "s", os.ExpandEnv("$EXTRA_SOURCES"),
 		"Extra sources to pull build dependencies from")
 
+	verbose := flag.BoolP("verbose", "v", false, "Print debug messages")
+
+	// Custom usage function
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, `%s
+
+Usage: dbp src/
+
+Builds a Debian package using a Docker container.
+Artifacts are found in pool/stretch-amd64/src/
+
+Options:
+`, os.Args[0])
+		flag.PrintDefaults()
+	}
+
 	flag.Parse()
 
 	if flag.NArg() == 0 {
 		buildPath = "."
 	} else {
 		buildPath = flag.Arg(0)
+	}
+
+	if *verbose {
+		log.SetLevel(log.DebugLevel)
+		log.Debug("Verbosity set to Debug")
 	}
 
 	// Handle SIGINT gracefully in container
@@ -94,7 +126,12 @@ func init() {
 		sig := <-sigc
 		switch sig {
 		case os.Interrupt:
-			log.Println(sig, "Waiting for container to exit.")
+			client, err := docker.NewClientFromEnv()
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			log.Info("Waiting for container to exit.")
 
 			running, err := client.ListContainers(docker.ListContainersOptions{
 				All: true,
@@ -107,7 +144,9 @@ func init() {
 			}
 
 			for _, c := range running {
-				log.Println("Removing your container", c.Names[0])
+				log.WithFields(log.Fields{
+					"name": c.Names[0],
+				}).Info("Removing container")
 				err = client.RemoveContainer(docker.RemoveContainerOptions{
 					ID:    c.ID,
 					Force: true,
