@@ -13,36 +13,37 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
-var name = fmt.Sprintf(
-	"%s-dbp-%s", os.ExpandEnv("$USER"), path.Base(os.ExpandEnv("$PWD")),
-)
+var buildConfig BuildConfig
 
-var (
-	arch      string
-	dist      string
-	uid       string
-	gid       string
-	sources   string
-	buildPath string
-)
+// BuildConfig contains options for building a Debian package
+type BuildConfig struct {
+	UID           string
+	GID           string
+	BuildPath     string
+	Distribution  string
+	Architecture  string
+	Sources       string
+	ContainerName string
+}
 
-func main() {
+// BuildPackage builds the Debian package using gbp in a container
+func (b BuildConfig) BuildPackage() error {
 	log.Debug("Getting docker client")
 	client, err := docker.NewClientFromEnv()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	log.Debug("Configuring container")
 	method, _ := dexec.ByCreatingContainer(docker.CreateContainerOptions{
-		Name: name,
+		Name: b.ContainerName,
 		Config: &docker.Config{
 			Env: []string{
-				"DIST=" + dist,
-				"ARCH=" + arch,
-				"UID=" + uid,
-				"GID=" + gid,
-				"EXTRA_SOURCES=" + sources,
+				"DIST=" + b.Distribution,
+				"ARCH=" + b.Architecture,
+				"UID=" + b.UID,
+				"GID=" + b.GID,
+				"EXTRA_SOURCES=" + b.Sources,
 			},
 			Image: "opxhub/gbp",
 		},
@@ -53,7 +54,7 @@ func main() {
 
 	log.Debug("Setting container command")
 	execClient := dexec.Docker{Client: client}
-	cmd := execClient.Command(method, "buildpackage", buildPath)
+	cmd := execClient.Command(method, "buildpackage", b.BuildPath)
 	log.Debug("Setting container stdout/stderr to our stdout/stderr")
 	cmd.Stderr = os.Stdout
 	cmd.Stdout = os.Stdout
@@ -63,36 +64,80 @@ func main() {
 		"args": cmd.Args,
 	}).Debug("Running")
 	if err := cmd.Start(); err != nil {
-		log.Fatal(err.Error())
+		return err
 	}
 	if err := cmd.Wait(); err != nil {
 		if exiterr, ok := err.(*dexec.ExitError); ok {
-			log.WithFields(log.Fields{
-				"code": exiterr.ExitCode,
-			}).Fatal("Build failed")
-		} else {
-			log.Fatal(err.Error())
+			return fmt.Errorf("process finished with return code %d", exiterr.ExitCode)
 		}
+		return err
 	}
 	log.Debug("Container exited successfully")
+
+	return nil
+}
+
+// RemoveContainer forcefully removes any running containers for this BuildConfig
+func (b BuildConfig) RemoveContainer() error {
+	log.Debug("Getting docker client")
+	client, err := docker.NewClientFromEnv()
+	if err != nil {
+		return err
+	}
+
+	containers, err := client.ListContainers(docker.ListContainersOptions{
+		All:     true,
+		Filters: map[string][]string{"name": []string{b.ContainerName}},
+	})
+	if err != nil {
+		return err
+	}
+
+	for _, c := range containers {
+		log.WithFields(log.Fields{
+			"name": c.Names[0],
+		}).Info("Removing container")
+
+		err := client.RemoveContainer(docker.RemoveContainerOptions{
+			ID:    c.ID,
+			Force: true,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func main() {
+	// SIGINT handler, remove container
+	sigc := make(chan os.Signal, 1)
+	signal.Notify(sigc, os.Interrupt)
+	go func() {
+		sig := <-sigc
+		switch sig {
+		case os.Interrupt:
+			log.Debug("Interrupt received.")
+			if err := buildConfig.RemoveContainer(); err != nil {
+				log.Fatal(err)
+			}
+		}
+	}()
+
+	// Build package and report any errors
+	if err := buildConfig.BuildPackage(); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func init() {
-	// Parse CLI arguments / environment
-	var currentUser, err = user.Current()
-	if err != nil {
-		log.Fatal(err)
-	}
-	flag.StringVarP(&arch, "architecture", "a", "amd64", "Debian architecture")
-	flag.StringVarP(&dist, "distribution", "d", "stretch", "Debian distribution")
-	flag.StringVarP(&uid, "uid", "u", currentUser.Uid, "User ID")
-	flag.StringVarP(&gid, "gid", "g", currentUser.Gid, "Group ID")
-	flag.StringVarP(&sources, "sources", "s", os.ExpandEnv("$EXTRA_SOURCES"),
-		"Extra sources to pull build dependencies from")
+	// Set custom container name
+	buildConfig.ContainerName = fmt.Sprintf(
+		"%s-dbp-%s", os.ExpandEnv("$USER"), path.Base(os.ExpandEnv("$PWD")),
+	)
 
-	verbose := flag.BoolP("verbose", "v", false, "Print debug messages")
-
-	// Custom usage function
+	// Usage message
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, `%s
 
@@ -106,52 +151,30 @@ Options:
 		flag.PrintDefaults()
 	}
 
+	// Parse CLI arguments / environment
+	currentUser, err := user.Current()
+	if err != nil {
+		log.Fatal(err)
+	}
+	flag.StringVarP(&buildConfig.Architecture, "architecture", "a", "amd64", "Debian architecture")
+	flag.StringVarP(&buildConfig.Distribution, "distribution", "d", "stretch", "Debian distribution")
+	flag.StringVarP(&buildConfig.UID, "uid", "u", currentUser.Uid, "User ID")
+	flag.StringVarP(&buildConfig.GID, "gid", "g", currentUser.Gid, "Group ID")
+	flag.StringVarP(&buildConfig.Sources, "sources", "s", os.ExpandEnv("$EXTRA_SOURCES"),
+		"Extra sources to pull build dependencies from")
+	verbose := flag.BoolP("verbose", "v", false, "Print debug messages")
+
 	flag.Parse()
 
+	// Single optional positional argument for which directory to build
 	if flag.NArg() == 0 {
-		buildPath = "."
+		buildConfig.BuildPath = "."
 	} else {
-		buildPath = flag.Arg(0)
+		buildConfig.BuildPath = flag.Arg(0)
 	}
 
 	if *verbose {
 		log.SetLevel(log.DebugLevel)
 		log.Debug("Verbosity set to Debug")
 	}
-
-	// Handle SIGINT gracefully in container
-	sigc := make(chan os.Signal, 1)
-	signal.Notify(sigc, os.Interrupt)
-	go func() {
-		sig := <-sigc
-		switch sig {
-		case os.Interrupt:
-			client, err := docker.NewClientFromEnv()
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			log.Info("Waiting for container to exit.")
-
-			running, err := client.ListContainers(docker.ListContainersOptions{
-				All: true,
-				Filters: map[string][]string{
-					"name": []string{name},
-				},
-			})
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			for _, c := range running {
-				log.WithFields(log.Fields{
-					"name": c.Names[0],
-				}).Info("Removing container")
-				err = client.RemoveContainer(docker.RemoveContainerOptions{
-					ID:    c.ID,
-					Force: true,
-				})
-			}
-		}
-	}()
 }
