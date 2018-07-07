@@ -13,8 +13,6 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
-var buildConfig BuildConfig
-
 // BuildConfig contains options for building a Debian package
 type BuildConfig struct {
 	UID           string
@@ -111,6 +109,13 @@ func (b BuildConfig) RemoveContainer() error {
 }
 
 func main() {
+	buildConfig := newBuildConfigFromArgs()
+
+	// Set custom container name
+	buildConfig.ContainerName = fmt.Sprintf(
+		"%s-dbp-%s", os.ExpandEnv("$USER"), path.Base(os.ExpandEnv("$PWD")),
+	)
+
 	// SIGINT handler, remove container
 	sigc := make(chan os.Signal, 1)
 	signal.Notify(sigc, os.Interrupt)
@@ -131,35 +136,19 @@ func main() {
 	}
 }
 
-func init() {
-	// Set custom container name
-	buildConfig.ContainerName = fmt.Sprintf(
-		"%s-dbp-%s", os.ExpandEnv("$USER"), path.Base(os.ExpandEnv("$PWD")),
-	)
+func newBuildConfigFromArgs() BuildConfig {
+	// Our build configuration
+	var buildConfig BuildConfig
 
-	// Usage message
-	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, `%s
-
-Usage: dbp src/
-
-Builds a Debian package using a Docker container.
-Artifacts are found in pool/stretch-amd64/src/
-
-Options:
-`, os.Args[0])
-		flag.PrintDefaults()
-	}
-
-	// Parse CLI arguments / environment
+	// Parse args directly into it
 	currentUser, err := user.Current()
 	if err != nil {
 		log.Fatal(err)
 	}
-	flag.StringVarP(&buildConfig.Architecture, "architecture", "a", "amd64", "Debian architecture")
-	flag.StringVarP(&buildConfig.Distribution, "distribution", "d", "stretch", "Debian distribution")
 	flag.StringVarP(&buildConfig.UID, "uid", "u", currentUser.Uid, "User ID")
 	flag.StringVarP(&buildConfig.GID, "gid", "g", currentUser.Gid, "Group ID")
+	flag.StringVarP(&buildConfig.Architecture, "architecture", "a", "amd64", "Debian architecture")
+	flag.StringVarP(&buildConfig.Distribution, "distribution", "d", "stretch", "Debian distribution")
 	flag.StringVarP(&buildConfig.Sources, "sources", "s", os.ExpandEnv("$EXTRA_SOURCES"),
 		"Extra sources to pull build dependencies from")
 	verbose := flag.BoolP("verbose", "v", false, "Print debug messages")
@@ -177,4 +166,20 @@ Options:
 		log.SetLevel(log.DebugLevel)
 		log.Debug("Verbosity set to Debug")
 	}
+
+	// Usage message
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, `%s
+
+Usage: dbp src/
+
+Builds a Debian package using a Docker container.
+Artifacts are found in pool/stretch-amd64/src/
+
+Options:
+`, os.Args[0])
+		flag.PrintDefaults()
+	}
+
+	return buildConfig
 }
