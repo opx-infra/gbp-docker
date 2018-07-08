@@ -6,12 +6,14 @@ import (
 	"os/signal"
 	"os/user"
 	"path"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 	flag "github.com/spf13/pflag"
 )
 
 func main() {
+	start := time.Now()
 	buildConfig := newBuildConfigFromArgs()
 
 	// Set custom container name
@@ -37,6 +39,7 @@ func main() {
 	if err := buildConfig.BuildPackage(); err != nil {
 		log.Fatal(err)
 	}
+	log.Debugf("Elapsed time: %.0f seconds\n", time.Since(start).Seconds())
 }
 
 func newBuildConfigFromArgs() BuildConfig {
