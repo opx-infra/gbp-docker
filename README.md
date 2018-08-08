@@ -1,41 +1,74 @@
-# Docker Builder for Debian Packages
+# gbp-docker
 
-## Quick Start
+*git-buildpackage + docker*
 
-```bash
-docker run --rm -it \
-  -v "$(pwd):/mnt" \
-  -e DIST=stretch \
-  -e ARCH=amd64 \
-  -e UID=$(id -u) \
-  -e GID=$(id -g) \
-  opxhub/gbp buildpackage src/
-```
+This is the Git repository of the "official" OpenSwitch build and development environments.
 
-Build artifacts are found in `pool/${DIST}-${ARCH}/src/`.
-
-## Recommended alias
-
-This alias may help with the long command. Environment variables should be set beforehand.
+## Quick start
 
 ```bash
-alias dbp='docker run --rm -it -v "$(pwd):/mnt" -e DIST -e ARCH -e EXTRA_SOURCES -e UID=$(id -u) -e GID=$(id -g) opxhub/gbp buildpackage'
+docker run -v "$(pwd):/mnt" -e UID=$(id -u) -e GID=$(id -g) opxhub/gbp:stretch buildpackage ./src/
 ```
 
-Usage:
+Build artifacts can be found in `./pool/stretch-amd64/src/`.
+
+## Building software
+
+The build variant of the image builds the package in a separate directory and exports the results to `./pool/stretch-amd64/src/`.
+
+This alias will make building Debian packages a breeze.
 
 ```bash
-DIST=stretch ARCH=amd64 dbp src/
+alias dbp='docker run --rm -it -v "$(pwd):/mnt" -e UID=$(id -u) -e GID=$(id -g) -e EXTRA_SOURCES opxhub/gbp:stretch buildpackage'
 ```
 
-## Adding additional package repositories
-
-This example uses the alias from the previous step.
+Use it like this.
 
 ```bash
-$ export EXTRA_SOURCES="
-deb     http://deb.openswitch.net/stretch unstable opx opx-non-free
-deb-src http://deb.openswitch.net/stretch unstable opx
-"
-$ DIST=stretch ARCH=amd64 dbp src/
+dbp ./src/
 ```
+
+## Developing software
+
+Use the development image variant for interactive sessions. It contains helpful tools, such as `vim`. When building in this image, **the build is done directly in the source tree and artifacts are deposited in the parent directory**.
+
+```bash
+# Enter a development container
+docker run --rm -it -v "$(pwd):/mnt" -e UID=$(id -u) -e GID=$(id -g) -e EXTRA_SOURCES opxhub/gbp:stretch-dev
+
+# Now we are inside the container (denoted by $ prompt)
+
+# Install build dependencies and build the package
+$ cd src/
+$ gbp buildpackage
+
+# On failed builds, avoid the long gbp build time by quickly rebuilding
+$ fakeroot debian/rules build
+
+# Create a test binary after fixing a failed build
+$ fakeroot debian/rules binary
+
+# Run gbp buildpackage again to do a clean build and install any new dependencies
+$ gbp buildpackage
+```
+
+## Build options
+
+### Building against different Debian distributions
+
+Build against different Debian distributions by changing the image tag.
+
+Examples:
+
+- Stretch: Use `opxhub/gbp:stretch` and `opxhub/gbp:stretch-dev`
+- Buster: Use `opxhub/gbp:buster` and `opxhub/gbp:buster-dev`
+
+### Building against custom Apt sources
+
+Set the `EXTRA_SOURCES` environment variable like any `sources.list` file. This work for both the build and develop variants
+
+```bash
+export EXTRA_SOURCES="deb http://deb.openswitch.net/stretch stable main opx opx-non-free"
+dbp ./src/
+```
+

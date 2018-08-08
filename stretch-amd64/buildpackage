@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ $# -gt 0 ]]; then
+  cd "$1"
+  NAME="$1"
+else
+  NAME="$(basename "$(pwd)")"
+fi
+
+gbp buildpackage --git-export-dir="/mnt/pool/${DIST}-${ARCH}/${NAME}"
