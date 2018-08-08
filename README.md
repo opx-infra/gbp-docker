@@ -48,6 +48,9 @@ $ fakeroot debian/rules build
 # Create a test binary after fixing a failed build
 $ fakeroot debian/rules binary
 
+# Manually clean up
+$ fakeroot debian/rules clean
+
 # Run gbp buildpackage again to do a clean build and install any new dependencies
 $ gbp buildpackage
 ```
@@ -61,7 +64,6 @@ Build against different Debian distributions by changing the image tag.
 Examples:
 
 - Stretch: Use `opxhub/gbp:stretch` and `opxhub/gbp:stretch-dev`
-- Buster: Use `opxhub/gbp:buster` and `opxhub/gbp:buster-dev`
 
 ### Building against custom Apt sources
 
