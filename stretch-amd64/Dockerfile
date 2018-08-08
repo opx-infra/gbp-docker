@@ -2,8 +2,11 @@ FROM debian:stretch-slim
 
 ENV ARCH amd64
 ENV DIST stretch
+ENV CCACHE_DIR=/home/build/ccache
+ENV PATH="/usr/lib/ccache:$PATH"
 
 RUN apt-get -qq update && apt-get -qq upgrade -y && apt-get -qq install -y \
+    ccache \
     git-buildpackage \
     gosu \
     python-pip \
@@ -22,8 +25,7 @@ RUN gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-key AD5073F1 \
 # Set up for the user we will create at runtime
 RUN mkdir -p /home/build && chmod -R 777 /home/build \
  && echo 'build ALL=(ALL) NOPASSWD:ALL' >>/etc/sudoers \
- && echo '%build ALL=(ALL) NOPASSWD:ALL' >>/etc/sudoers \
- && echo 'Defaults env_keep += "DIST ARCH"' >>/etc/sudoers
+ && echo '%build ALL=(ALL) NOPASSWD:ALL' >>/etc/sudoers
 
 COPY apt-preferences /etc/apt/preferences
 COPY buildpackage /usr/bin/buildpackage
