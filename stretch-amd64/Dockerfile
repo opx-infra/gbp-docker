@@ -6,7 +6,12 @@ ENV DIST stretch
 RUN apt-get -qq update && apt-get -qq upgrade -y && apt-get -qq install -y \
     git-buildpackage \
     gosu \
+    python-pip \
  && apt-get -qq autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Pyang not available as Debian package
+RUN pip2 install pyang requests-file \
+ && ln -s /usr/local/bin/pyang /usr/bin
 
 # Add OpenSwitch GPG key
 RUN gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-key AD5073F1 \
