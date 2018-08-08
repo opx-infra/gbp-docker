@@ -2,6 +2,8 @@
 
 *git-buildpackage + docker*
 
+[![Build status](https://badge.buildkite.com/5dbfd1f5cf0ff9311fd6543a5ac976de409fbc8cdd6ecee299.svg)](https://buildkite.com/opx/opx-infra-gbp-docker)
+
 This is the Git repository of the "official" OpenSwitch build and development environments.
 
 ## Quick start
