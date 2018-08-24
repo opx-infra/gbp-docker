@@ -9,7 +9,7 @@ This is the Git repository of the "official" OpenSwitch build and development en
 ## Quick start
 
 ```bash
-docker run -v "$(pwd):/mnt" -e UID=$(id -u) -e GID=$(id -g) opxhub/gbp:stretch buildpackage ./src/
+docker run -v "$(pwd):/mnt" -e UID=$(id -u) -e GID=$(id -g) opxhub/gbp:stretch build ./src/
 ```
 
 Build artifacts can be found in `./pool/stretch-amd64/src/`.
@@ -21,7 +21,7 @@ The build variant of the image builds the package in a separate directory and ex
 This alias will make building Debian packages a breeze.
 
 ```bash
-alias dbp='docker run --rm -it -v "$(pwd):/mnt" -e UID=$(id -u) -e GID=$(id -g) -e EXTRA_SOURCES opxhub/gbp:stretch buildpackage'
+alias dbp='docker run --rm -it -v "$(pwd):/mnt" -e UID=$(id -u) -e GID=$(id -g) -e EXTRA_SOURCES opxhub/gbp:stretch build'
 ```
 
 Use it like this.

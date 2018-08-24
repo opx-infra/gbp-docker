@@ -28,7 +28,7 @@ RUN mkdir -p /home/build && chmod -R 777 /home/build \
  && echo '%build ALL=(ALL) NOPASSWD:ALL' >>/etc/sudoers
 
 COPY apt-preferences /etc/apt/preferences
-COPY buildpackage /usr/bin/buildpackage
+COPY build /usr/bin/build
 COPY gbp.conf /home/build/.gbp.conf
 COPY entrypoint.sh /
 COPY install-build-deps /usr/bin/install-build-deps
@@ -37,4 +37,4 @@ WORKDIR /mnt
 VOLUME /mnt
 
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["buildpackage"]
+CMD ["build"]
