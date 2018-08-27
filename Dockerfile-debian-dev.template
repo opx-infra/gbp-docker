@@ -1,4 +1,4 @@
-FROM opxhub/gbp:stretch
+FROM opxhub/gbp:%%DEBIAN-DIST%%
 
 # Add any tools required for development
 RUN apt-get -qq update && apt-get -qq upgrade -y && apt-get -qq install -y \
@@ -8,3 +8,5 @@ RUN apt-get -qq update && apt-get -qq upgrade -y && apt-get -qq install -y \
 
 # Launch into an interactive shell
 CMD ["bash"]
+
+# vi:syntax=dockerfile
