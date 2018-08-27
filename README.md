@@ -66,6 +66,7 @@ Build against different Debian distributions by changing the image tag.
 Examples:
 
 - Stretch: Use `opxhub/gbp:stretch` and `opxhub/gbp:stretch-dev`
+- Buster: Use `opxhub/gbp:buster` and `opxhub/gbp:buster-dev`
 
 ### Building against custom Apt sources
 
@@ -88,4 +89,5 @@ Next, build the images.
 
 ```bash
 make stretch
+make buster
 ```
