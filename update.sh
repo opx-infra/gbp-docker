@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-debians=( stretch )
+debians=( stretch buster )
 for dist in "${debians[@]}"; do
   mkdir -p "debian/$dist/base"
   # [[ ! -e "debian/$dist/base/assets" ]] && ln -s ../../../assets "debian/$dist/base/assets"
