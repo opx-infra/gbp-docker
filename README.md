@@ -66,6 +66,7 @@ Build against different Debian distributions by changing the image tag.
 Examples:
 
 - Stretch: Use `opxhub/gbp:stretch` and `opxhub/gbp:stretch-dev`
+- Buster: Use `opxhub/gbp:buster` and `opxhub/gbp:buster-dev`
 
 ### Building against custom Apt sources
 
@@ -76,3 +77,17 @@ export EXTRA_SOURCES="deb http://deb.openswitch.net/stretch stable main opx opx-
 dbp ./src/
 ```
 
+# Building the images
+
+First, generate the Dockerfiles from the templates.
+
+```bash
+make update
+```
+
+Next, build the images.
+
+```bash
+make stretch
+make buster
+```

@@ -1,7 +1,7 @@
-FROM debian:stretch-slim
+FROM debian:buster
 
 ENV ARCH amd64
-ENV DIST stretch
+ENV DIST buster
 ENV CCACHE_DIR=/home/build/ccache
 ENV PATH="/usr/lib/ccache:$PATH"
 
@@ -27,11 +27,11 @@ RUN mkdir -p /home/build && chmod -R 777 /home/build \
  && echo 'build ALL=(ALL) NOPASSWD:ALL' >>/etc/sudoers \
  && echo '%build ALL=(ALL) NOPASSWD:ALL' >>/etc/sudoers
 
-COPY apt-preferences /etc/apt/preferences
-COPY build /usr/bin/build
-COPY gbp.conf /home/build/.gbp.conf
-COPY entrypoint.sh /
-COPY install-build-deps /usr/bin/install-build-deps
+COPY assets/apt-preferences    /etc/apt/preferences
+COPY assets/build              /usr/bin/build
+COPY assets/entrypoint.sh      /entrypoint.sh
+COPY assets/gbp.conf           /home/build/.gbp.conf
+COPY assets/install-build-deps /usr/bin/install-build-deps
 
 WORKDIR /mnt
 VOLUME /mnt
