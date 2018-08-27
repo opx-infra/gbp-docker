@@ -1,20 +1,17 @@
 steps:
-  - label: ":docker: stretch/amd64"
+  - label: ":docker: build"
     command: |
-      echo "--- Building build image"
-      cd stretch-amd64
-      docker build -t opxhub/gbp:stretch .
-      echo "--- Building develop image"
-      cd develop
-      docker build -t opxhub/gbp:stretch-dev .
+      echo "+++ Building stretch image"
+      make stretch
   - wait
   - label: ":docker: push"
     branches: "master"
     command: |
-      echo "--- Pushing docker images"
-      docker tag opxhub/gbp:stretch "opxhub/gbp:$(git rev-parse HEAD)"
-      docker push "opxhub/gbp:$(git rev-parse HEAD)"
+      echo "+++ Pushing docker images"
       docker push opxhub/gbp:stretch
-      docker tag opxhub/gbp:stretch-dev "opxhub/gbp:$(git rev-parse HEAD)-dev"
-      docker push "opxhub/gbp:$(git rev-parse HEAD)-dev"
       docker push opxhub/gbp:stretch-dev
+      echo "--- Tagging and pushing Stretch image with git sha"
+      docker tag opxhub/gbp:stretch "opxhub/gbp:$(git rev-parse HEAD)-stretch"
+      docker push "opxhub/gbp:$(git rev-parse HEAD)-stretch"
+      docker tag opxhub/gbp:stretch-dev "opxhub/gbp:$(git rev-parse HEAD)-stretch-dev"
+      docker push "opxhub/gbp:$(git rev-parse HEAD)-stretch-dev"

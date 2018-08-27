@@ -76,3 +76,16 @@ export EXTRA_SOURCES="deb http://deb.openswitch.net/stretch stable main opx opx-
 dbp ./src/
 ```
 
+# Building the images
+
+First, generate the Dockerfiles from the templates.
+
+```bash
+make update
+```
+
+Next, build the images.
+
+```bash
+make stretch
+```
