@@ -2,9 +2,9 @@ steps:
   - label: ":docker: build"
     command: |
       echo "+++ Building stretch image"
-      make stretch
+      make DIST=stretch
       echo "--- Building buster image"
-      make buster
+      make DIST=buster
   - wait
   - label: ":docker: push"
     branches: "master"

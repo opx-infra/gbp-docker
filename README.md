@@ -138,6 +138,6 @@ make update
 Next, build the images.
 
 ```bash
-make stretch
-make buster
+make DIST=stretch
+make DIST=buster
 ```

@@ -1,16 +1,17 @@
-default: stretch
+DIST ?= stretch
+DEBIANS := jessie stretch buster sid
 
-all: stretch buster
+ifneq ($(filter $(DIST),$(DEBIANS)),)
+DIR := debian
+else
+DIR := ubuntu
+endif
+
+default:
+	docker build --tag opxhub/gbp:$(DIST) -f $(DIR)/$(DIST)/base/Dockerfile .
+	docker build --tag opxhub/gbp:$(DIST)-dev $(DIR)/$(DIST)
 
 update:
 	@./update.sh
 
-stretch:
-	docker build --tag opxhub/gbp:stretch -f debian/stretch/base/Dockerfile .
-	docker build --tag opxhub/gbp:stretch-dev debian/stretch
-
-buster:
-	docker build --tag opxhub/gbp:buster -f debian/buster/base/Dockerfile .
-	docker build --tag opxhub/gbp:buster-dev debian/buster
-
-.PHONY: default all update stretch buster
+.PHONY: default update

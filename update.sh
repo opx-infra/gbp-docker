@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
+#set -x
 
 debians=( stretch buster )
 for dist in "${debians[@]}"; do
   mkdir -p "debian/$dist/base"
-  # [[ ! -e "debian/$dist/base/assets" ]] && ln -s ../../../assets "debian/$dist/base/assets"
   sed -r \
       -e 's!%%DEBIAN-DIST%%!'"$dist"'!g' \
       -e 's!%%DEBIAN-ARCH%%!'"amd64"'!g' \
