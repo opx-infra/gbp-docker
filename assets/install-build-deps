@@ -19,7 +19,8 @@ popd 2>/dev/null
 
 sudo apt-get update
 
-mk-build-deps -i -r -s sudo -t "apt-get --no-install-recommends -y" || {
+dep_tool="apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends -y"
+mk-build-deps --install --remove --root-cmd sudo --tool "$dep_tool" || {
   echo "Error: Failed to install build dependencies from these sources:"
   tail -n +1 /etc/apt/sources.list /etc/apt/sources.list.d/*.list
   exit 1
