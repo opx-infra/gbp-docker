@@ -36,7 +36,7 @@ def container_running(dist: str) -> bool:
     return p.returncode == 0 and "true" in str(p.stdout)
 
 
-def buildpackage(dist: str, target: str, gbp_options: List[str]) -> int:
+def buildpackage(dist: str, target: str, sources: str, gbp_options: List[str]) -> int:
     """Runs gbp buildpackage --git-export-dir=pool/{dist}-amd64/{target}
 
     Uses (and starts if necessary) any matching pre-existing dbp container.
@@ -47,7 +47,7 @@ def buildpackage(dist: str, target: str, gbp_options: List[str]) -> int:
             "exec",
             "-it",
             "--user=build",
-            "-e=EXTRA_SOURCES",
+            "-e=EXTRA_SOURCES={}".format(sources),
             CONTAINER_NAME,
             "build",
             target,
@@ -66,7 +66,7 @@ def buildpackage(dist: str, target: str, gbp_options: List[str]) -> int:
             "-v={}/.gitconfig:/etc/skel/.gitconfig:ro".format(Path.home()),
             "-e=UID={}".format(UID),
             "-e=GID={}".format(GID),
-            "-e=EXTRA_SOURCES",
+            "-e=EXTRA_SOURCES={}".format(sources),
             "--hostname={}".format(dist),
             "{}:{}".format(IMAGE, dist),
             "build",
@@ -78,7 +78,7 @@ def buildpackage(dist: str, target: str, gbp_options: List[str]) -> int:
     return proc.returncode
 
 
-def docker_run(dist: str) -> int:
+def docker_run(dist: str, sources: str) -> int:
     """Runs bash in a development container
 
     Uses (and starts if necessary) any matching pre-existing dbp container.
@@ -89,7 +89,7 @@ def docker_run(dist: str) -> int:
             "exec",
             "-it",
             "--user=build",
-            "-e=EXTRA_SOURCES",
+            "-e=EXTRA_SOURCES={}".format(sources),
             CONTAINER_NAME,
             "bash",
         ]
@@ -105,7 +105,7 @@ def docker_run(dist: str) -> int:
             "-v={}/.gitconfig:/etc/skel/.gitconfig:ro".format(Path.home()),
             "-e=UID={}".format(UID),
             "-e=GID={}".format(GID),
-            "-e=EXTRA_SOURCES",
+            "-e=EXTRA_SOURCES={}".format(sources),
             "--hostname={}".format(dist),
             "{}:{}-dev".format(IMAGE, dist),
         ]
@@ -148,7 +148,7 @@ def cmd_build(args: argparse.Namespace) -> int:
         logging.error("Build target `{}` does not exist".format(args.target))
         return 1
 
-    return buildpackage(args.dist, str(args.target), args.gbp_options)
+    return buildpackage(args.dist, str(args.target), args.extra_sources, args.gbp_options)
 
 
 def cmd_pull(args: argparse.Namespace) -> int:
@@ -160,7 +160,7 @@ def cmd_rm(args: argparse.Namespace) -> int:
 
 
 def cmd_run(args: argparse.Namespace) -> int:
-    return docker_run(args.dist)
+    return docker_run(args.dist, args.extra_sources)
 
 
 def main() -> int:
