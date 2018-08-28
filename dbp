@@ -1,0 +1,204 @@
+#!/usr/bin/env python3
+"""Simple program to manage gbp-docker container lifecycle."""
+
+import argparse
+import logging
+import os
+import sys
+
+from pathlib import Path
+from subprocess import run, PIPE, DEVNULL
+from typing import List
+
+PWD = Path.cwd()
+UID = os.getuid()
+GID = os.getgid()
+USER = os.getenv("USER")
+
+CONTAINER_NAME = f"{USER}-dbp-{PWD.stem}"
+IMAGE = "opxhub/gbp"
+
+L = logging.getLogger("dbp")
+L.addHandler(logging.NullHandler())
+
+
+def container_exists(dist: str) -> bool:
+    """Returns true if our dbp container can be inspected"""
+    p = run(["docker", "inspect", CONTAINER_NAME], stdout=DEVNULL, stderr=DEVNULL)
+    return p.returncode == 0
+
+
+def container_running(dist: str) -> bool:
+    """Returns true if our dbp container is running"""
+    p = run(
+        ["docker", "inspect", CONTAINER_NAME, "--format={{.State.Running}}"],
+        stdout=PIPE,
+        stderr=DEVNULL,
+    )
+    return p.returncode == 0 and "true" in str(p.stdout)
+
+
+def buildpackage(dist: str, target: str, gbp_options: List[str]) -> int:
+    """Runs gbp buildpackage --git-export-dir=pool/{dist}-amd64/{target}
+
+    Uses (and starts if necessary) any matching pre-existing dbp container.
+    """
+    if container_exists(dist):
+        cmd = [
+            "docker",
+            "exec",
+            "-it",
+            "--user=build",
+            "-e=EXTRA_SOURCES",
+            CONTAINER_NAME,
+            "build",
+            target,
+            " ".join(gbp_options),
+        ]
+        if not container_running(dist):
+            docker_start(dist)
+    else:
+        cmd = [
+            "docker",
+            "run",
+            f"--name={CONTAINER_NAME}",
+            "--rm",
+            "-it",
+            f"-v={PWD}:/mnt",
+            f"-v={Path.home()}/.gitconfig:/home/build/.gitconfig:ro",
+            f"-e=UID={UID}",
+            f"-e=GID={GID}",
+            "-e=EXTRA_SOURCES",
+            f"{IMAGE}:{dist}",
+            "build",
+            target,
+            " ".join(gbp_options),
+        ]
+
+    proc = run(cmd, stdin=sys.stdin, stdout=sys.stdout)
+    return proc.returncode
+
+
+def docker_run(dist: str) -> int:
+    """Runs bash in a development container
+
+    Uses (and starts if necessary) any matching pre-existing dbp container.
+    """
+    if container_exists(dist):
+        cmd = [
+            "docker",
+            "exec",
+            "-it",
+            "--user=build",
+            "-e=EXTRA_SOURCES",
+            CONTAINER_NAME,
+            "bash",
+        ]
+        if not container_running(dist):
+            docker_start(dist)
+    else:
+        cmd = [
+            "docker",
+            "run",
+            f"--name={CONTAINER_NAME}",
+            "-it",
+            f"-v={PWD}:/mnt",
+            f"-v={Path.home()}/.gitconfig:/home/build/.gitconfig:ro",
+            f"-e=UID={UID}",
+            f"-e=GID={GID}",
+            "-e=EXTRA_SOURCES",
+            f"{IMAGE}:{dist}-dev",
+        ]
+
+    proc = run(cmd, stdin=sys.stdin, stdout=sys.stdout)
+    return proc.returncode
+
+
+def docker_start(dist: str) -> int:
+    """Runs docker start and returns the return code"""
+    cmd = ["docker", "start", CONTAINER_NAME]
+    proc = run(cmd, stdin=sys.stdin, stdout=sys.stdout)
+    return proc.returncode
+
+
+def pull_images(dist: str) -> int:
+    """Runs docker pull for both build and development images and returns the return code"""
+    cmd = ["docker", "pull", f"{IMAGE}:{dist}"]
+    proc = run(cmd, stdin=sys.stdin, stdout=sys.stdout)
+    if proc.returncode != 0:
+        return proc.returncode
+
+    cmd = ["docker", "pull", f"{IMAGE}:{dist}-dev"]
+    proc = run(cmd, stdin=sys.stdin, stdout=sys.stdout)
+    return proc.returncode
+
+
+def remove_container() -> int:
+    """Runs docker rm -f for the dbp container and always returns 0"""
+    cmd = ["docker", "rm", "-f", CONTAINER_NAME]
+    proc = run(cmd, stdin=sys.stdin, stdout=sys.stdout)
+    # we don't care if it doesn't exist
+    return 0
+
+
+def cmd_build(args: argparse.Namespace) -> int:
+    # TODO: support building multiple repositories at once
+
+    if not args.target.exists():
+        L.error(f"Build target `{args.target}` does not exist")
+        return 1
+
+    return buildpackage(args.dist, str(args.target), args.gbp_options)
+
+
+def cmd_pull(args: argparse.Namespace) -> int:
+    return pull_images(args.dist)
+
+
+def cmd_rm(args: argparse.Namespace) -> int:
+    return remove_container()
+
+
+def cmd_run(args: argparse.Namespace) -> int:
+    return docker_run(args.dist)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--verbose", "-v", help="-v for info, -vv for debug", action="count", default=0
+    )
+    parser.add_argument(
+        "--dist", "-d", help="Debian distribution", default=os.getenv("DIST", "stretch")
+    )
+    parser.add_argument(
+        "--extra-sources",
+        "-e",
+        help="Apt-style sources",
+        default=os.getenv("EXTRA_SOURCES", ""),
+    )
+
+    sps = parser.add_subparsers(help="commands")
+    build_parser = sps.add_parser("build", help="run gbp buildpackage in a container")
+    build_parser.add_argument("target", type=Path, help="directory to build")
+    build_parser.add_argument("gbp_options", nargs="*")
+    build_parser.set_defaults(func=cmd_build)
+    pull_parser = sps.add_parser("pull", help="pull latest images")
+    pull_parser.set_defaults(func=cmd_pull)
+    rm_parser = sps.add_parser("rm", help="remove workspace container")
+    rm_parser.set_defaults(func=cmd_rm)
+    run_parser = sps.add_parser("run", help="run development container")
+    run_parser.set_defaults(func=cmd_run)
+
+    args = parser.parse_args()
+    logging.basicConfig(level=10 * (3 - min(args.verbose, 2)))
+
+    if getattr(args, "func", None) is None:
+        parser.print_help()
+        return 0
+
+    return args.func(args)
+
+
+if __name__ == "__main__":
+    sys.exit(main())
