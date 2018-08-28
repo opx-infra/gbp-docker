@@ -4,8 +4,8 @@ if [[ -n "${UID}" ]]; then
     GID=${GID:-${UID}}
 
     if ! grep -q build /etc/group; then
-        groupadd -o --gid="${GID}" build
-        useradd -o --uid="${UID}" --gid="${GID}" -s /bin/bash build
+        groupadd --non-unique --gid="${GID}" build
+        useradd --non-unique --uid="${UID}" --gid="${GID}" --create-home --shell /bin/bash build
     fi
 
     exec gosu build "$@"

@@ -7,6 +7,6 @@ RUN apt-get -qq update && apt-get -qq upgrade -y && apt-get -qq install -y \
  && apt-get -qq autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Launch into an interactive shell
-CMD ["bash"]
+CMD ["bash", "-l"]
 
 # vi:syntax=dockerfile

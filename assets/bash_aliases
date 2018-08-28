@@ -1,0 +1,14 @@
+alias l="ls -1Fh --color=auto --group-directories-first"
+alias la="ls -AFhl --color=auto --group-directories-first"
+alias ll="ls -Fhl --color=auto --group-directories-first"
+alias less="less -FSRXc"
+alias rsync="rsync -ahSH --progress"
+
+export PROMPT_DIRTRIM=4
+
+export HISTIGNORE='&:[ ]*:e:exit:ls:bg:fg:l:ll:la:history:reset'
+export HISTCONTROL='erasedups:ignoreboth'
+export HISTTIMEFORMAT='%F %T '
+export HISTSIZE=500000
+export HISTFILESIZE=100000
+export HISTFILE=~/.bash_history

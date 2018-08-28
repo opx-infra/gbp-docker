@@ -4,6 +4,7 @@ ENV ARCH %%DEBIAN-ARCH%%
 ENV DIST %%DEBIAN-DIST%%
 ENV CCACHE_DIR=/home/build/ccache
 ENV PATH="/usr/lib/ccache:$PATH"
+ENV TERM=xterm-256color
 
 RUN apt-get -qq update && apt-get -qq upgrade -y && apt-get -qq install -y \
     ccache \
@@ -23,14 +24,14 @@ RUN gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-key AD5073F1 \
  && mkdir -p /etc/apt/sources.list.d/
 
 # Set up for the user we will create at runtime
-RUN mkdir -p /home/build && chmod -R 777 /home/build \
- && echo 'build ALL=(ALL) NOPASSWD:ALL' >>/etc/sudoers \
+RUN echo 'build ALL=(ALL) NOPASSWD:ALL' >>/etc/sudoers \
  && echo '%build ALL=(ALL) NOPASSWD:ALL' >>/etc/sudoers
 
 COPY assets/apt-preferences    /etc/apt/preferences
+COPY assets/bash_aliases       /etc/skel/.bash_aliases
 COPY assets/build              /usr/bin/build
 COPY assets/entrypoint.sh      /entrypoint.sh
-COPY assets/gbp.conf           /home/build/.gbp.conf
+COPY assets/gbp.conf           /etc/skel/.gbp.conf
 COPY assets/install-build-deps /usr/bin/install-build-deps
 
 WORKDIR /mnt
