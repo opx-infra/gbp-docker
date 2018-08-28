@@ -2,7 +2,7 @@
 
 *git-buildpackage + docker*
 
-[![Build status](https://badge.buildkite.com/5dbfd1f5cf0ff9311fd6543a5ac976de409fbc8cdd6ecee299.svg)](https://buildkite.com/opx/opx-infra-gbp-docker)
+[![Build status](https://badge.buildkite.com/2d58b3eebc06566b7235dc063f64108daf73178744be58ec95.svg)](https://buildkite.com/opx/opx-infra-gbp-docker)
 
 This is the Git repository of the "official" OpenSwitch build and development environments. If `python (>= 3.5)` is available in your environment, use `dbp` (directly below) to manage the container lifecycle. Otherwise, see further down for the required `docker run` commands.
 
