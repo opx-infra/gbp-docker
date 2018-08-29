@@ -106,12 +106,18 @@ deb http://deb.openswitch.net/stretch 3.0.0 opx opx-non-free"
 # Run gbp buildpackage again to do a clean build and install any new dependencies
 $ gbp buildpackage
 
+# Run an "official" build (what the CI runs)
+$ cd /mnt
+$ build src
+
 # Exit the container
 $ exit
 
 # Remove the container when finished (or use `dbp run` again to re-enter the same container)
 dbp rm
 ```
+
+**Important**: Packages are only indexed for build dependencies in `pool/${DIST}-${ARCH}/`. Building with `build ./src` automatically deposits build artifacts into the correct directory for indexing. You can also simply copy `.deb` files into the directory.
 
 ### Build multiple repositories
 
