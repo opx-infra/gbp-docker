@@ -4,11 +4,11 @@
 
 [![Build status](https://badge.buildkite.com/2d58b3eebc06566b7235dc063f64108daf73178744be58ec95.svg)](https://buildkite.com/opx/opx-infra-gbp-docker)
 
-This is the Git repository of the "official" OpenSwitch build and development environments. If `python (>= 3.5)` is available in your environment, use `dbp` (directly below) to manage the container lifecycle. Otherwise, see further down for the required `docker run` commands.
+gbp-docker is an opinionated Debian development environment in a container. A small Python (>= 3.5) script is included to help you manage the container lifecycle. Example `docker run` invocations are also included later in this page.
 
 # dbp
 
-dbp is used to manage the persistence of the development environment, enabling compiler and dependency caches for faster builds.
+dbp is used to manage the persistence of the development environment, enabling compiler and dependency caches for faster builds. dbp requires Python (>= 3.5).
 
 ## Installation
 
@@ -22,7 +22,11 @@ chmod +x ./dbp
 ## Usage
 
 * `dbp build src/` runs an out-of-tree build and stores build artifacts in `./pool/` for easy publishing
-* `dbp run` runs an interactive bash shell in a persistent development environment container
+* `dbp shell` launches an interactive bash shell in the development environment container
+* `dbp run` starts a persistent container in the background
+* `dbp rm` removes the persistent container
+
+Both `dbp build` and `dbp run` use temporary containers if no container exists.
 
 ## Advanced usage
 
@@ -77,12 +81,13 @@ dbp build src
 
 * Adds `EXTRA_SOURCES` to `sources.list`
 
-### Develop inside a persistent Stretch development container
+### Develop inside a persistent development container
 
-Using the `run` subcommand launches a persistent development container. This container will only be explicitly removed when `dbp rm` is run in the same directory.
+Using the `run` subcommand launches a persistent development container. This container will only be explicitly removed when `dbp rm` is run in the same directory. Then use `dbp shell` to enter this container.
 
 ```bash
 dbp run
+dbp shell
 
 # Now we are inside the container (denoted by $ prompt)
 

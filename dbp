@@ -20,7 +20,11 @@ CONTAINER_NAME = "{}-dbp-{}".format(USER, PWD.stem)
 IMAGE = "opxhub/gbp"
 
 
-def container_exists(dist: str) -> bool:
+L = logging.getLogger("dbp")
+L.addHandler(logging.NullHandler())
+
+
+def container_exists() -> bool:
     """Returns true if our dbp container can be inspected"""
     p = run(["docker", "inspect", CONTAINER_NAME], stdout=DEVNULL, stderr=DEVNULL)
     return p.returncode == 0
@@ -41,12 +45,14 @@ def buildpackage(dist: str, target: str, sources: str, gbp_options: List[str]) -
 
     Uses (and starts if necessary) any matching pre-existing dbp container.
     """
-    if container_exists(dist):
+    if container_exists():
         cmd = [
             "docker",
             "exec",
             "-it",
             "--user=build",
+            "-e=UID={}".format(UID),
+            "-e=GID={}".format(GID),
             "-e=EXTRA_SOURCES={}".format(sources),
             CONTAINER_NAME,
             "build",
@@ -59,15 +65,15 @@ def buildpackage(dist: str, target: str, sources: str, gbp_options: List[str]) -
         cmd = [
             "docker",
             "run",
-            "--name={}".format(CONTAINER_NAME),
             "--rm",
             "-it",
+            "--name={}".format(CONTAINER_NAME),
+            "--hostname={}".format(dist),
             "-v={}:/mnt".format(PWD),
             "-v={}/.gitconfig:/etc/skel/.gitconfig:ro".format(Path.home()),
             "-e=UID={}".format(UID),
             "-e=GID={}".format(GID),
             "-e=EXTRA_SOURCES={}".format(sources),
-            "--hostname={}".format(dist),
             "{}:{}".format(IMAGE, dist),
             "build",
             target,
@@ -79,19 +85,46 @@ def buildpackage(dist: str, target: str, sources: str, gbp_options: List[str]) -
 
 
 def docker_run(dist: str, sources: str) -> int:
+    if container_exists():
+        L.warning("Container already exists.")
+        return 0
+
+    cmd = [
+        "docker",
+        "run",
+        "-d",
+        "-it",
+        "--name={}".format(CONTAINER_NAME),
+        "--hostname={}".format(dist),
+        "-v={}:/mnt".format(PWD),
+        "-v={}/.gitconfig:/etc/skel/.gitconfig:ro".format(Path.home()),
+        "-e=UID={}".format(UID),
+        "-e=GID={}".format(GID),
+        "-e=EXTRA_SOURCES={}".format(sources),
+        "{}:{}-dev".format(IMAGE, dist),
+    ]
+
+    proc = run(cmd, stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr)
+    return proc.returncode
+
+
+def docker_shell(dist: str, sources: str) -> int:
     """Runs bash in a development container
 
     Uses (and starts if necessary) any matching pre-existing dbp container.
     """
-    if container_exists(dist):
+    if container_exists():
         cmd = [
             "docker",
             "exec",
             "-it",
             "--user=build",
+            "-e=UID={}".format(UID),
+            "-e=GID={}".format(GID),
             "-e=EXTRA_SOURCES={}".format(sources),
             CONTAINER_NAME,
             "bash",
+            "-l",
         ]
         if not container_running(dist):
             docker_start(dist)
@@ -99,14 +132,15 @@ def docker_run(dist: str, sources: str) -> int:
         cmd = [
             "docker",
             "run",
-            "--name={}".format(CONTAINER_NAME),
+            "--rm",
             "-it",
+            "--name={}".format(CONTAINER_NAME),
+            "--hostname={}".format(dist),
             "-v={}:/mnt".format(PWD),
             "-v={}/.gitconfig:/etc/skel/.gitconfig:ro".format(Path.home()),
             "-e=UID={}".format(UID),
             "-e=GID={}".format(GID),
             "-e=EXTRA_SOURCES={}".format(sources),
-            "--hostname={}".format(dist),
             "{}:{}-dev".format(IMAGE, dist),
         ]
 
@@ -134,21 +168,26 @@ def pull_images(dist: str) -> int:
 
 
 def remove_container() -> int:
-    """Runs docker rm -f for the dbp container and always returns 0"""
-    cmd = ["docker", "rm", "-f", CONTAINER_NAME]
-    proc = run(cmd, stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr)
-    # we don't care if it doesn't exist
-    return 0
+    """Runs docker rm -f for the dbp container"""
+    if container_exists():
+        cmd = ["docker", "rm", "-f", CONTAINER_NAME]
+        proc = run(cmd, stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr)
+        return proc.returncode
+
+    L.warning("Container does not exist.")
+    return 1
 
 
 def cmd_build(args: argparse.Namespace) -> int:
     # TODO: support building multiple repositories at once
 
     if not args.target.exists():
-        logging.error("Build target `{}` does not exist".format(args.target))
+        L.error("Build target `{}` does not exist".format(args.target))
         return 1
 
-    return buildpackage(args.dist, str(args.target), args.extra_sources, args.gbp_options)
+    return buildpackage(
+        args.dist, str(args.target), args.extra_sources, args.gbp_options
+    )
 
 
 def cmd_pull(args: argparse.Namespace) -> int:
@@ -156,11 +195,16 @@ def cmd_pull(args: argparse.Namespace) -> int:
 
 
 def cmd_rm(args: argparse.Namespace) -> int:
-    return remove_container()
+    remove_container()
+    return 0
 
 
 def cmd_run(args: argparse.Namespace) -> int:
     return docker_run(args.dist, args.extra_sources)
+
+
+def cmd_shell(args: argparse.Namespace) -> int:
+    return docker_shell(args.dist, args.extra_sources)
 
 
 def main() -> int:
@@ -183,7 +227,7 @@ def main() -> int:
     sps = parser.add_subparsers(help="commands")
 
     # build subcommand
-    build_parser = sps.add_parser("build", help="run gbp buildpackage in a container")
+    build_parser = sps.add_parser("build", help="run gbp buildpackage")
     build_parser.add_argument("target", type=Path, help="directory to build")
     build_parser.add_argument("gbp_options", nargs="*")
     build_parser.set_defaults(func=cmd_build)
@@ -197,20 +241,23 @@ def main() -> int:
     rm_parser.set_defaults(func=cmd_rm)
 
     # run subcommand
-    run_parser = sps.add_parser("run", help="run development container")
+    run_parser = sps.add_parser("run", help="run development container in background")
     run_parser.set_defaults(func=cmd_run)
+
+    # shell subcommand
+    shell_parser = sps.add_parser("shell", help="launch development environment")
+    shell_parser.set_defaults(func=cmd_shell)
 
     args = parser.parse_args()
 
     # set up logging
     logging.basicConfig(
-        format="[%(levelname)s] %(message)s",
-        level=10 * (3 - min(args.verbose, 2)),
+        format="[%(levelname)s] %(message)s", level=10 * (3 - min(args.verbose, 2))
     )
 
     # check for prereqs
     if shutil.which("docker") is None:
-        logging.error("Docker not found in PATH. Please install docker.")
+        L.error("Docker not found in PATH. Please install docker.")
         sys.exit(1)
 
     # read sources from ./.extra_sources and ~/.extra_sources
@@ -222,7 +269,7 @@ def main() -> int:
         args.extra_sources = sources_file.read_text()
 
     if args.extra_sources != "":
-        logging.info("Loaded extra sources:\n{}".format(args.extra_sources))
+        L.info("Loaded extra sources:\n{}".format(args.extra_sources))
 
     # print help if no subcommand specified
     if getattr(args, "func", None) is None:
