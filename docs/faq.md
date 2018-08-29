@@ -12,7 +12,4 @@
 
 ```bash
 gbp buildpackage --git-upstream-tag='upstream/%(version)s'
-
-# with dbp, it looks like this
-dbp build repo -- --git-upstream-tag='upstream/%(version)s'
 ```

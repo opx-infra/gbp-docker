@@ -1,4 +1,4 @@
-# Maintaining Debian Packaging with `dbp`
+# Maintaining Debian Packaging
 
 This document outlines the creation of a Debian packaging fork. See the [gbp manual](http://honk.sigxcpu.org/projects/git-buildpackage/manual-html/gbp.import.upstream-git.html) for more information.
 
@@ -29,7 +29,8 @@ git -C pam_tacplus commit -asm 'fix: Build with git-buildpackage on Stretch'
 4. Build the package.
 
 ```bash
-dbp build pam_tacplus -- --git-debian-branch=debian/stretch --git-tag
+docker run -it --rm -v "$(pwd):/mnt" -e UID=$(id -u) -e GID=$(id -g) opxhub/gbp:stretch \
+  build pam_tacplus --git-debian-branch=debian/stretch --git-tag
 ```
 
 5. Push our branch and tag to the new fork.
@@ -41,3 +42,5 @@ git -C pam_tacplus push origin --tags
 ```
 
 ## Fork update (new upstream version)
+
+TODO...
