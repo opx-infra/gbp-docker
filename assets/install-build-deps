@@ -1,7 +1,17 @@
 #!/usr/bin/env bash
 set -eo pipefail
 
-[[ $# -gt 0 ]] && cd "$1"
+if [[ $# -gt 0 ]]; then
+  if [[ ! -d "$1" ]]; then
+    echo "[ERROR] $1 does not exist." >&2
+    exit 1
+  fi
+else
+  if [[ ! -e debian/control ]]; then
+    echo "[ERROR] debian/control does not exist." >&2
+    exit 1
+  fi
+fi
 
 if [[ -n "${EXTRA_SOURCES}" ]]; then
   echo "${EXTRA_SOURCES}" | sudo tee /etc/apt/sources.list.d/20extra.list
@@ -20,8 +30,26 @@ popd 2>/dev/null
 sudo apt-get update
 
 dep_tool="apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends -y"
-mk-build-deps --install --remove --root-cmd sudo --tool "$dep_tool" || {
-  echo "Error: Failed to install build dependencies from these sources:"
-  tail -n +1 /etc/apt/sources.list /etc/apt/sources.list.d/*.list
-  exit 1
-}
+
+if [[ $# -gt 0 ]]; then
+  for repo in "$@"; do
+    if [[ ! -d "$repo" ]]; then
+      echo "[Warning] $repo does not exist." >&2
+      continue
+    fi
+
+    pushd "$repo"
+    if ! mk-build-deps --install --remove --root-cmd sudo --tool "$dep_tool"; then
+      echo "Error: Failed to install $repo build dependencies from:"
+      tail -n +1 /etc/apt/sources.list /etc/apt/sources.list.d/*.list
+      exit 1
+    fi
+    popd
+  done
+else
+  if ! mk-build-deps --install --remove --root-cmd sudo --tool "$dep_tool"; then
+    echo "Error: Failed to install build dependencies from these sources:"
+    tail -n +1 /etc/apt/sources.list /etc/apt/sources.list.d/*.list
+    exit 1
+  fi
+fi
