@@ -6,6 +6,13 @@ steps:
       echo "--- Building buster image"
       make DIST=buster
   - wait
+  - label: ":python: format"
+    command: |
+      echo "--- Installing black"
+      pipenv install black
+      echo "+++ Running formatter"
+      pipenv run black --check dbp
+  - wait
   - label: ":docker: push"
     branches: "master"
     command: |
