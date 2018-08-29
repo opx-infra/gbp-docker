@@ -113,6 +113,14 @@ $ exit
 dbp rm
 ```
 
+### Build multiple repositories
+
+Simple add more directories to the build command.
+
+```bash
+dbp build src new-src amazing-src
+```
+
 ### Pass additional `git-buildpackage` options
 
 For example, skip building when tagging by passing the correct flag.
