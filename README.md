@@ -96,6 +96,10 @@ $ fakeroot debian/rules build
 # Manually clean up
 $ fakeroot debian/rules clean
 
+# Add a new source for build dependencies by appending to the env var
+$ export EXTRA_SOURCES="$EXTRA_SOURCES
+deb http://deb.openswitch.net/stretch 3.0.0 opx opx-non-free"
+
 # Run gbp buildpackage again to do a clean build and install any new dependencies
 $ gbp buildpackage
 
