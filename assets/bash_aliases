@@ -12,3 +12,5 @@ export HISTTIMEFORMAT='%F %T '
 export HISTSIZE=500000
 export HISTFILESIZE=100000
 export HISTFILE=~/.bash_history
+
+export PATH=/usr/lib/ccache:$PATH
