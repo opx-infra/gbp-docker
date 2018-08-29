@@ -113,7 +113,15 @@ $ exit
 dbp rm
 ```
 
-**Pull any Docker image updates**
+### Pass additional `git-buildpackage` options
+
+For example, skip building when tagging by passing the correct flag.
+
+```bash
+dbp build src --gbp="--git-tag-only"
+```
+
+### Pull any Docker image updates
 
 ```bash
 dbp pull
@@ -122,13 +130,13 @@ dbp -d buster pull
 
 # Docker run commands
 
-**Build a single package in a container**
+### Build a single package in a container
 
 ```bash
 docker run --rm -it -v "$(pwd):/mnt" -e UID=$(id -u) -e GID=$(id -g) -e EXTRA_SOURCES opxhub/gbp:stretch build ./src/
 ```
 
-**Develop in a development container**
+### Develop in a development container
 
 ```bash
 docker run --rm -it -v "$(pwd):/mnt" -e UID=$(id -u) -e GID=$(id -g) -e EXTRA_SOURCES opxhub/gbp:stretch-dev

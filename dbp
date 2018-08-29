@@ -40,7 +40,7 @@ def container_running(dist: str) -> bool:
     return p.returncode == 0 and "true" in str(p.stdout)
 
 
-def buildpackage(dist: str, target: str, sources: str, gbp_options: List[str]) -> int:
+def buildpackage(dist: str, target: str, sources: str, gbp_options: str) -> int:
     """Runs gbp buildpackage --git-export-dir=pool/{dist}-amd64/{target}
 
     Uses (and starts if necessary) any matching pre-existing dbp container.
@@ -57,7 +57,7 @@ def buildpackage(dist: str, target: str, sources: str, gbp_options: List[str]) -
             CONTAINER_NAME,
             "build",
             target,
-            " ".join(gbp_options),
+            gbp_options,
         ]
         if not container_running(dist):
             docker_start(dist)
@@ -77,7 +77,7 @@ def buildpackage(dist: str, target: str, sources: str, gbp_options: List[str]) -
             "{}:{}".format(IMAGE, dist),
             "build",
             target,
-            " ".join(gbp_options),
+            gbp_options,
         ]
 
     proc = run(cmd, stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr)
@@ -186,7 +186,7 @@ def cmd_build(args: argparse.Namespace) -> int:
         return 1
 
     return buildpackage(
-        args.dist, str(args.target), args.extra_sources, args.gbp_options
+        args.dist, str(args.target), args.extra_sources, args.gbp
     )
 
 
@@ -229,7 +229,9 @@ def main() -> int:
     # build subcommand
     build_parser = sps.add_parser("build", help="run gbp buildpackage")
     build_parser.add_argument("target", type=Path, help="directory to build")
-    build_parser.add_argument("gbp_options", nargs="*")
+    build_parser.add_argument(
+        "--gbp", "-g", help="additional git-buildpackage options to pass"
+    )
     build_parser.set_defaults(func=cmd_build)
 
     # pull subcommand
