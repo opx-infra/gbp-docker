@@ -2,8 +2,6 @@
 
 *git-buildpackage + docker*
 
-[![Build status](https://badge.buildkite.com/2d58b3eebc06566b7235dc063f64108daf73178744be58ec95.svg)](https://buildkite.com/opx/opx-infra-gbp-docker)
-
 gbp-docker is an opinionated Debian development environment in a container. A small Python (>= 3.5) script is included to help you manage the container lifecycle. Example `docker run` invocations are also included later in this page.
 
 # dbp
