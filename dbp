@@ -260,13 +260,13 @@ def main() -> int:
         L.error("Docker not found in PATH. Please install docker.")
         sys.exit(1)
 
-    # read sources from ./.extra_sources and ~/.extra_sources
-    sources_file = Path(".extra_sources")
-    if args.extra_sources == "" and sources_file.exists():
-        args.extra_sources = sources_file.read_text()
-    sources_file = Path.home() / ".extra_sources"
-    if args.extra_sources == "" and sources_file.exists():
-        args.extra_sources = sources_file.read_text()
+    # read sources from ./extra_sources and ~/.extra_sources
+    if args.extra_sources == "":
+        extra_sources = [Path("extra_sources"), Path.home() / ".extra_sources"]
+        for s in extra_sources:
+            if s.exists():
+                args.extra_sources = s.read_text()
+                break
 
     if args.extra_sources != "":
         L.info("Loaded extra sources:\n{}".format(args.extra_sources))
