@@ -9,7 +9,7 @@ if [[ -n "${UID}" ]]; then
         useradd --non-unique --uid="${UID}" --gid="${GID}" --create-home --shell /bin/bash build
 
         if [[ -n "${EXTRA_SOURCES}" ]]; then
-            echo "${EXTRA_SOURCES}" >/etc/apt/sources.list.d/extra.list
+            echo "${EXTRA_SOURCES}" >/etc/apt/sources.list.d/20extra.list
         fi
     fi
 
