@@ -1,21 +1,30 @@
 steps:
-  - label: ":docker: build"
+  - label: ":bash: Shellcheck"
+    plugins:
+      shellcheck#v1.1.1:
+        files:
+          - .buildkite/publish.bash
+          - assets/bash_aliases
+          - assets/build
+          - assets/entrypoint.sh
+          - assets/install-build-deps
+  - label: ":docker: Build Stretch"
+    env:
+      DIST: stretch
     command: |
-      echo "+++ Building stretch image"
-      make DIST=stretch
-      echo "--- Building buster image"
-      make DIST=buster
-  - wait
-  - label: ":docker: push"
-    branches: "master"
+      echo "--- Building images"
+      make "DIST=$DIST"
+      if [[ "$BUILDKITE_BRANCH" == "master" ]]; then
+        echo "--- Publishing $DIST images"
+        ./.buildkite/publish.bash
+      fi
+  - label: ":docker: Build Buster"
+    env:
+      DIST: buster
     command: |
-      echo "+++ Pushing docker images"
-      docker push opxhub/gbp:stretch
-      docker push opxhub/gbp:stretch-dev
-      docker push opxhub/gbp:buster
-      docker push opxhub/gbp:buster-dev
-      echo "--- Tagging and pushing Stretch image with git sha"
-      docker tag opxhub/gbp:stretch "opxhub/gbp:$(git rev-parse HEAD)-stretch"
-      docker push "opxhub/gbp:$(git rev-parse HEAD)-stretch"
-      docker tag opxhub/gbp:stretch-dev "opxhub/gbp:$(git rev-parse HEAD)-stretch-dev"
-      docker push "opxhub/gbp:$(git rev-parse HEAD)-stretch-dev"
+      echo "--- Building images"
+      make "DIST=$DIST"
+      if [[ "$BUILDKITE_BRANCH" == "master" ]]; then
+        echo "--- Publishing $DIST images"
+        ./.buildkite/publish.bash
+      fi

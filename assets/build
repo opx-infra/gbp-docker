@@ -9,4 +9,4 @@ else
   NAME="$(basename "$(pwd)")"
 fi
 
-gbp buildpackage --git-export-dir="/mnt/pool/${DIST}-${ARCH}/${NAME}" $@
+gbp buildpackage --git-export-dir="/mnt/pool/${DIST}-${ARCH}/${NAME}" "$@"

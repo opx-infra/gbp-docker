@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 alias l="ls -1Fh --color=auto --group-directories-first"
 alias la="ls -AFhl --color=auto --group-directories-first"
 alias ll="ls -Fhl --color=auto --group-directories-first"
