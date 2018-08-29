@@ -4,13 +4,13 @@ set -eo pipefail
 [[ $# -gt 0 ]] && cd "$1"
 
 if [[ -n "${EXTRA_SOURCES}" ]]; then
-  echo "${EXTRA_SOURCES}" | sudo tee /etc/apt/sources.list.d/extra.list
+  echo "${EXTRA_SOURCES}" | sudo tee /etc/apt/sources.list.d/20extra.list
 fi
 
 set -u
 
 echo "deb [trusted=yes] file:///mnt/pool/${DIST}-${ARCH} ./" \
-  | sudo tee /etc/apt/sources.list.d/local.list
+  | sudo tee /etc/apt/sources.list.d/10local.list
 
 mkdir -p "/mnt/pool/${DIST}-${ARCH}/"
 pushd "/mnt/pool/${DIST}-${ARCH}/" 2>/dev/null
