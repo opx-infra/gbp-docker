@@ -2,6 +2,12 @@
 set -euo pipefail
 #set -x
 
+if [[ "$BUILDKITE_BRANCH" == "master" ]] || [[ -n "$BUILDKITE_TAG" ]]; then
+  echo "+++ Publishing images"
+else
+  exit 0
+fi
+
 docker push "opxhub/gbp:${DIST}"
 docker push "opxhub/gbp:${DIST}-dev"
 

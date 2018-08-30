@@ -14,17 +14,11 @@ steps:
     command: |
       echo "--- Building images"
       make "DIST=$DIST"
-      if [[ "$BUILDKITE_BRANCH" == "master" ]]; then
-        echo "--- Publishing $DIST images"
-        ./.buildkite/publish.bash
-      fi
+      ./.buildkite/publish.bash
   - label: ":docker: Build Buster"
     env:
       DIST: buster
     command: |
       echo "--- Building images"
       make "DIST=$DIST"
-      if [[ "$BUILDKITE_BRANCH" == "master" ]]; then
-        echo "--- Publishing $DIST images"
-        ./.buildkite/publish.bash
-      fi
+      ./.buildkite/publish.bash
