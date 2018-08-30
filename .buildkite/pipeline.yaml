@@ -18,8 +18,6 @@ steps:
         echo "--- Publishing $DIST images"
         ./.buildkite/publish.bash
       fi
-      docker pull "opxhub/gbp:$DIST"
-      docker pull "opxhub/gbp:${DIST}-dev"
   - label: ":docker: Build Buster"
     env:
       DIST: buster
@@ -30,5 +28,3 @@ steps:
         echo "--- Publishing $DIST images"
         ./.buildkite/publish.bash
       fi
-      docker pull "opxhub/gbp:$DIST"
-      docker pull "opxhub/gbp:${DIST}-dev"
