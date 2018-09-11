@@ -14,6 +14,7 @@ RUN apt-get -qq update && apt-get -qq upgrade -y && apt-get -qq install -y \
     git-buildpackage \
     gosu \
     python-pip \
+    quilt \
  && apt-get -qq autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Pyang not available as Debian package
