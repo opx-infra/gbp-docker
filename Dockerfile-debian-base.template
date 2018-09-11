@@ -1,11 +1,14 @@
 FROM debian:%%DEBIAN-DIST%%
 
-ENV ARCH %%DEBIAN-ARCH%%
-ENV DIST %%DEBIAN-DIST%%
-ENV CCACHE_DIR=/home/build/ccache
-ENV PATH="/usr/lib/ccache:$PATH"
-ENV TERM=xterm-256color
+ENV ARCH       %%DEBIAN-ARCH%%
+ENV CCACHE_DIR /home/build/ccache
+ENV DIST       %%DEBIAN-DIST%%
+ENV LANG       C.UTF-8
+ENV LC_ALL     C.UTF-8
+ENV PATH       "/usr/lib/ccache:$PATH"
+ENV TERM       xterm-256color
 
+# Install packages for building Debian packages
 RUN apt-get -qq update && apt-get -qq upgrade -y && apt-get -qq install -y \
     ccache \
     git-buildpackage \
