@@ -1,11 +1,14 @@
 FROM debian:buster
 
-ENV ARCH amd64
-ENV DIST buster
-ENV CCACHE_DIR=/home/build/ccache
-ENV PATH="/usr/lib/ccache:$PATH"
-ENV TERM=xterm-256color
+ENV ARCH       amd64
+ENV CCACHE_DIR /home/build/ccache
+ENV DIST       buster
+ENV LANG       C.UTF-8
+ENV LC_ALL     C.UTF-8
+ENV PATH       "/usr/lib/ccache:$PATH"
+ENV TERM       xterm-256color
 
+# Install packages for building Debian packages
 RUN apt-get -qq update && apt-get -qq upgrade -y && apt-get -qq install -y \
     ccache \
     git-buildpackage \
