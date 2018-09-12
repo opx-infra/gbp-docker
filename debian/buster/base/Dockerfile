@@ -33,6 +33,7 @@ COPY assets/build              /usr/bin/build
 COPY assets/entrypoint.sh      /entrypoint.sh
 COPY assets/gbp.conf           /etc/skel/.gbp.conf
 COPY assets/install-build-deps /usr/bin/install-build-deps
+COPY assets/vimrc              /etc/skel/.vimrc
 
 WORKDIR /mnt
 VOLUME /mnt

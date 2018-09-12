@@ -1,0 +1,77 @@
+"
+" Tyler's vimrc
+"
+" Taken from his init.vim and stripped down
+"
+filetype plugin indent on  " Load filetype plugins
+syntax on                  " Enable syntax highlighting
+
+set hidden                 " Switch between buffers without needing to save
+
+set hlsearch               " Highlight all search matches
+set incsearch              " Match as you type
+set ignorecase             " Ignore case when term contains no capitals
+set smartcase              " Case sensitive if any capital letters in term
+
+set lazyredraw             " Improve performace when using macros/registers
+
+set linebreak              " Break lines on words, not characters
+
+set list                   " Display non-printable characters
+set listchars=tab:>-,trail:-
+
+set modeline               " Read modelines in files
+
+set mouse=a                " Enable mouse usage
+
+set number                 " Show absolute line number for current line
+set relativenumber         " Show relative line numbers otherwise
+
+set scrolloff=8            " Always show eight lines below the cursor
+
+set showcmd                " Show the vim command as you type it
+set showmode               " Display a message when in INSERT mode
+
+set softtabstop=2          " Add two spaces when tab is pressed
+set shiftwidth=2           " Indent by two spaces
+set tabstop=3              " Number of spaces to display for tab characters
+set shiftround             " Indent by muliples of shiftwidth
+set expandtab              " Insert spaces instead of tab characters
+set smarttab               " Insert shiftwidth spaces when tab is pressed
+
+set splitright             " Open new windows to the right
+set splitbelow             " Open new windows below
+
+set synmaxcol=300          " Only highlight first 300 characters
+
+set nowritebackup          " Save files in one action
+
+" Keep backup, swap, and undo files in home directory
+silent call system('mkdir -p $HOME/.vim/backup')
+set backupdir=$HOME/.vim/backup
+silent call system('mkdir -p $HOME/.vim/swap')
+set directory=$HOME/.vim/swap
+silent call system('mkdir -p $HOME/.vim/undo')
+set undofile
+set undodir=$HOME/.vim/undo/
+
+" Mappings
+let mapleader=' '                               " Use space for custom mappings
+imap <special> jk <Esc>                         " For poor Escape buttons
+nnoremap <Space><Space> <C-^>                   " Switch to last open file
+nnoremap <C-n> :bnext<CR>                       " Go to next buffer
+nnoremap <Leader>q :bp <BAR> bd #<CR>           " Delete current buffer
+nnoremap <Leader>s <C-W>s                       " Split below
+nnoremap <Leader>v <C-W>v                       " Split right
+nnoremap <Leader>w :w!<CR>                      " Save
+nnoremap <expr> N  'nN'[v:searchforward] . 'zz' " N always searches up the page
+nnoremap <expr> n  'Nn'[v:searchforward] . 'zz' " n always searches down
+nnoremap q: :q                                  " Fix common typo
+vnoremap . :normal .<CR>                        " Use . shortcut with visual
+
+" Return to same line on file reopen
+au BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$")
+\| exe "normal! g'\"" | endif
+
+" Use tab characters with Makefiles
+au FileType make,automake setl noexpandtab
