@@ -1,4 +1,4 @@
-FROM opxhub/gbp:%%DEBIAN-DIST%%
+FROM opxhub/gbp:%%DIST%%
 
 # Add any tools required for development
 RUN apt-get -qq update && apt-get -qq upgrade -y && apt-get -qq install -y \
