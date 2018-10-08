@@ -9,8 +9,11 @@ ENV PATH       "/usr/lib/ccache:$PATH"
 ENV TERM       xterm-256color
 
 # Install packages for building Debian packages
-RUN apt-get -qq update && apt-get -qq upgrade -y && apt-get -qq install -y \
+RUN apt-get -qq update && apt-get -qq upgrade -y \
+ && DEBIAN_FRONTEND=noninteractive apt-get -qq install -y \
     ccache \
+    debhelper \
+    equivs \
     git-buildpackage \
     gosu \
     python-pip \

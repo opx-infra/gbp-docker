@@ -26,3 +26,21 @@ steps:
       echo "--- Building images"
       make "DIST=$DIST"
       ./.buildkite/publish.bash
+  - label: ":docker: Build Xenial"
+    agents:
+      queue: "docker"
+    env:
+      DIST: xenial
+    command: |
+      echo "--- Building images"
+      make "DIST=$DIST"
+      ./.buildkite/publish.bash
+  - label: ":docker: Build Bionic"
+    agents:
+      queue: "docker"
+    env:
+      DIST: bionic
+    command: |
+      echo "--- Building images"
+      make "DIST=$DIST"
+      ./.buildkite/publish.bash
