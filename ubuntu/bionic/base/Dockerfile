@@ -1,8 +1,8 @@
-FROM %%OS%%:%%DIST%%
+FROM ubuntu:bionic
 
-ENV ARCH       %%ARCH%%
+ENV ARCH       amd64
 ENV CCACHE_DIR /home/build/ccache
-ENV DIST       %%DIST%%
+ENV DIST       bionic
 ENV LANG       C.UTF-8
 ENV LC_ALL     C.UTF-8
 ENV PATH       "/usr/lib/ccache:$PATH"
