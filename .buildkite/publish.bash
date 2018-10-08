@@ -13,13 +13,25 @@ elif [[ -n "$BUILDKITE_TAG" ]]; then
     *) echo "--- Skipping tag $BUILDKITE_TAG"; exit 0;;
   esac
 
+  minor=${BUILDKITE_TAG%.*}
+  major=${minor%.*}
+
   docker tag  "opxhub/gbp:${DIST}" \
               "opxhub/gbp:${BUILDKITE_TAG}-${DIST}"
   docker push "opxhub/gbp:${BUILDKITE_TAG}-${DIST}"
-  docker pull "opxhub/gbp:${DIST}"
 
   docker tag  "opxhub/gbp:${DIST}-dev" \
               "opxhub/gbp:${BUILDKITE_TAG}-${DIST}-dev"
   docker push "opxhub/gbp:${BUILDKITE_TAG}-${DIST}-dev"
+
+  docker tag  "opxhub/gbp:${DIST}" \
+              "opxhub/gbp:${major}-${DIST}"
+  docker push "opxhub/gbp:${major}-${DIST}"
+
+  docker tag  "opxhub/gbp:${DIST}-dev" \
+              "opxhub/gbp:${major}-${DIST}-dev"
+  docker push "opxhub/gbp:${major}-${DIST}-dev"
+
+  docker pull "opxhub/gbp:${DIST}"
   docker pull "opxhub/gbp:${DIST}-dev"
 fi
