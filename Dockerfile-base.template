@@ -1,8 +1,8 @@
-FROM debian:%%DEBIAN-DIST%%
+FROM %%OS%%:%%DIST%%
 
-ENV ARCH       %%DEBIAN-ARCH%%
+ENV ARCH       %%ARCH%%
 ENV CCACHE_DIR /home/build/ccache
-ENV DIST       %%DEBIAN-DIST%%
+ENV DIST       %%DIST%%
 ENV LANG       C.UTF-8
 ENV LC_ALL     C.UTF-8
 ENV PATH       "/usr/lib/ccache:$PATH"

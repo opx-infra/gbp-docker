@@ -6,11 +6,13 @@ debians=( stretch buster )
 for dist in "${debians[@]}"; do
   mkdir -p "debian/$dist/base"
   sed -r \
-      -e 's!%%DEBIAN-DIST%%!'"$dist"'!g' \
-      -e 's!%%DEBIAN-ARCH%%!'"amd64"'!g' \
-      "Dockerfile-debian-base.template" >"debian/$dist/base/Dockerfile"
+      -e 's!%%OS%%!debian!g' \
+      -e 's!%%DIST%%!'"$dist"'!g' \
+      -e 's!%%ARCH%%!amd64!g' \
+      "Dockerfile-base.template" >"debian/$dist/base/Dockerfile"
   sed -r \
-      -e 's!%%DEBIAN-DIST%%!'"$dist"'!g' \
-      -e 's!%%DEBIAN-ARCH%%!'"amd64"'!g' \
-      "Dockerfile-debian-dev.template" >"debian/$dist/Dockerfile"
+      -e 's!%%OS%%!debian!g' \
+      -e 's!%%DIST%%!'"$dist"'!g' \
+      -e 's!%%ARCH%%!amd64!g' \
+      "Dockerfile-dev.template" >"debian/$dist/Dockerfile"
 done

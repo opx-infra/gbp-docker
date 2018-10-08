@@ -11,7 +11,7 @@ default: update
 	docker build --tag opxhub/gbp:$(DIST) -f $(DIR)/$(DIST)/base/Dockerfile .
 	docker build --tag opxhub/gbp:$(DIST)-dev $(DIR)/$(DIST)
 
-update: Dockerfile-debian-base.template Dockerfile-debian-dev.template
+update: Dockerfile-base.template Dockerfile-dev.template
 	./update.sh
 
 .PHONY: default update
