@@ -9,18 +9,20 @@ steps:
           - assets/entrypoint.sh
           - assets/install-build-deps
   - label: ":docker: Build Stretch"
+    agents:
+      queue: "docker"
     env:
       DIST: stretch
     command: |
       echo "--- Building images"
       make "DIST=$DIST"
-      echo "--- Publishing images"
       ./.buildkite/publish.bash
   - label: ":docker: Build Buster"
+    agents:
+      queue: "docker"
     env:
       DIST: buster
     command: |
       echo "--- Building images"
       make "DIST=$DIST"
-      echo "--- Publishing images"
       ./.buildkite/publish.bash
