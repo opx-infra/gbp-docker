@@ -15,4 +15,4 @@ export HISTSIZE=500000
 export HISTFILESIZE=100000
 export HISTFILE=~/.bash_history
 
-export PATH=/usr/lib/ccache:$PATH
+export PATH=/usr/lib/ccache:$PATH:/usr/local/opx-build/scripts
