@@ -22,9 +22,7 @@ RUN pip2 install pyang requests-file \
  && ln -s /usr/local/bin/pyang /usr/bin
 
 # Add OpenSwitch GPG key
-RUN gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-key AD5073F1 \
- && gpg --export AD5073F1 >/usr/share/keyrings/opx-archive-keyring.gpg \
- && apt-key add /usr/share/keyrings/opx-archive-keyring.gpg \
+RUN apt-key adv --fetch-keys http://deb.openswitch.net/opx.asc \
  && mkdir -p /etc/apt/sources.list.d/
 
 # Set up for the user we will create at runtime
