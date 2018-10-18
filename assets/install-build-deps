@@ -19,11 +19,10 @@ fi
 
 set -u
 
-echo "deb [trusted=yes] file:///mnt/pool/${DIST}-${ARCH} ./" \
+echo "deb [trusted=yes] file:///mnt ./" \
   | sudo tee /etc/apt/sources.list.d/10local.list
 
-mkdir -p "/mnt/pool/${DIST}-${ARCH}/"
-pushd "/mnt/pool/${DIST}-${ARCH}/" 2>/dev/null
+pushd "/mnt/" 2>/dev/null
 dpkg-scanpackages -m . >Packages
 popd 2>/dev/null
 
