@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+#set -x
+
+if [[ $# -ne 1 ]]; then
+  echo "Usage: $0 package_version_arch.changes" >&2
+  exit 1
+fi
+
+changes="$1"
+pkg="${changes%%_*}"
+output="pool/${DIST}-${ARCH}/$pkg"
+
+mkdir -p "$output"
+
+awk 'f; /Files:/{f=1}' "$changes" | awk '{print $5}' | while read -r f; do
+  mv "$f" "$output/$f"
+done
+
+buildlog="$(basename "$changes" .changes).build"
+if [[ -f $buildlog ]]; then
+  mv "$buildlog" "$output/$buildlog"
+fi
+
+mv "$changes" "$output/$changes"

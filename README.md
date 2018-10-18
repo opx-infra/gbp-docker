@@ -38,6 +38,16 @@ deb     http://deb.openswitch.net/stretch stable opx opx-non-free
 deb-src http://deb.openswitch.net/stretch stable opx"
 ```
 
+## Pool packages for publishing
+
+A script is provided which will pool packages into respective directories. Simply run it on every changes file.
+
+```bash
+for f in *.changes; do pool-packages $f; done
+```
+
+Packages will be found in `./pool/${DIST}-${ARCH}/src`.
+
 # Building the container images
 
 Generate the Dockerfiles from the templates and build the images.
