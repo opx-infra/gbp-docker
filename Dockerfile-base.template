@@ -34,7 +34,6 @@ RUN echo 'build ALL=(ALL) NOPASSWD:ALL' >>/etc/sudoers \
 
 COPY assets/apt-preferences    /etc/apt/preferences
 COPY assets/bash_aliases       /etc/skel/.bash_aliases
-COPY assets/build              /usr/bin/build
 COPY assets/entrypoint.sh      /entrypoint.sh
 COPY assets/gbp.conf           /etc/skel/.gbp.conf
 COPY assets/install-build-deps /usr/bin/install-build-deps
@@ -43,6 +42,6 @@ WORKDIR /mnt
 VOLUME /mnt
 
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["build"]
+CMD ["gbp", "buildpackage"]
 
 # vi:syntax=dockerfile
