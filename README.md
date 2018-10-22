@@ -40,10 +40,13 @@ deb-src http://deb.openswitch.net/stretch stable opx"
 
 ## Pool packages for publishing
 
-A script is provided which will pool packages into respective directories. Simply run it on every changes file.
+A script is provided which will pool packages into respective directories.
 
 ```bash
-for f in *.changes; do pool-packages $f; done
+pool-packages opx-logging_2.1.1_amd64.changes
+
+# also supports pooling every changes file found
+pool-packages *.changes
 ```
 
 Packages will be found in `./pool/${DIST}-${ARCH}/src`.
