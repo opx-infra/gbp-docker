@@ -12,6 +12,11 @@ pool_packages() {
   pkg="${changes%%_*}"
   output="pool/${DIST}-${ARCH}/$pkg"
 
+  if [[ ! -e "$changes"  ]]; then
+    echo "Changes file '$changes' not found." >&2
+    return
+  fi
+
   mkdir -p "$output"
 
   awk 'f; /Files:/{f=1}' "$changes" | awk '{print $5}' | while read -r f; do
