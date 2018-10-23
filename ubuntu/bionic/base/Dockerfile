@@ -11,6 +11,7 @@ ENV TERM       xterm-256color
 # Install packages for building Debian packages
 RUN apt-get -qq update && apt-get -qq upgrade -y \
  && DEBIAN_FRONTEND=noninteractive apt-get -qq install -y \
+    apt-utils \
     ccache \
     debhelper \
     equivs \
