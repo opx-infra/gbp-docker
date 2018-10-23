@@ -1,54 +1,47 @@
 #!/usr/bin/env bash
 set -eo pipefail
 
-if [[ $# -gt 0 ]]; then
-  if [[ ! -d "$1" ]]; then
-    echo "[ERROR] $1 does not exist." >&2
-    exit 1
-  fi
-else
-  if [[ ! -e debian/control ]]; then
-    echo "[ERROR] debian/control does not exist." >&2
-    exit 1
-  fi
-fi
-
 if [[ -n "${EXTRA_SOURCES}" ]]; then
-  echo "${EXTRA_SOURCES}" | sudo tee /etc/apt/sources.list.d/20extra.list
+  echo "${EXTRA_SOURCES}" | sudo tee /etc/apt/sources.list.d/20extra.list >/dev/null
 fi
 
 set -u
 
-echo "deb [trusted=yes] file:///mnt ./" \
-  | sudo tee /etc/apt/sources.list.d/10local.list
-
-pushd "/mnt/" 2>/dev/null
-dpkg-scanpackages -m . >Packages
-popd 2>/dev/null
-
+# Where deb and dsc files are stored (subdirectories supported)
+DEBS=/mnt
+# Where Packages/Sources/Release files are stored
+REPO=/var/lib/mnt-apt-repository
+# Add local apt repo to sources list
+echo "deb [trusted=yes] file://$REPO ./
+deb-src [trusted=yes] file://$REPO ./" \
+  | sudo tee /etc/apt/sources.list.d/10local.list >/dev/null
+sudo mkdir -p "$REPO"
+# Index binary and source packages, create release file
+apt-ftparchive packages ../../../$DEBS 2>/dev/null | sudo tee $REPO/Packages >/dev/null
+apt-ftparchive sources ../../../$DEBS 2>/dev/null | sudo tee $REPO/Sources >/dev/null
+apt-ftparchive release $REPO 2>/dev/null | sudo tee $REPO/Release >/dev/null
 sudo apt-get update
 
-dep_tool="apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends -y"
-
-if [[ $# -gt 0 ]]; then
-  for repo in "$@"; do
-    if [[ ! -d "$repo" ]]; then
-      echo "[Warning] $repo does not exist." >&2
-      continue
-    fi
-
-    pushd "$repo"
-    if ! mk-build-deps --install --remove --root-cmd sudo --tool "$dep_tool"; then
-      echo "Error: Failed to install $repo build dependencies from:"
-      tail -n +1 /etc/apt/sources.list /etc/apt/sources.list.d/*.list
-      exit 1
-    fi
-    popd
-  done
+# Support any number of arguments
+if [[ $# -eq 0 ]]; then
+  repos="."
 else
+  repos="$*"
+fi
+
+# Install build dependencies for each repo specified
+dep_tool="apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends -y"
+for repo in $repos; do
+  if [[ ! -f "$repo/debian/control" ]]; then
+    echo "[Warning] $repo/debian/control does not exist." >&2
+    continue
+  fi
+
+  pushd "$repo" >/dev/null
   if ! mk-build-deps --install --remove --root-cmd sudo --tool "$dep_tool"; then
-    echo "Error: Failed to install build dependencies from these sources:"
+    echo "Error: Failed to install $repo build dependencies from:"
     tail -n +1 /etc/apt/sources.list /etc/apt/sources.list.d/*.list
     exit 1
   fi
-fi
+  popd >/dev/null
+done
