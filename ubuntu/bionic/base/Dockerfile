@@ -34,6 +34,7 @@ RUN echo 'build ALL=(ALL) NOPASSWD:ALL' >>/etc/sudoers \
 
 COPY assets/apt-preferences    /etc/apt/preferences
 COPY assets/bash_aliases       /etc/skel/.bash_aliases
+COPY assets/devscripts         /etc/skel/.devscripts
 COPY assets/entrypoint.sh      /entrypoint.sh
 COPY assets/gbp.conf           /etc/skel/.gbp.conf
 COPY assets/install-build-deps /usr/bin/install-build-deps
