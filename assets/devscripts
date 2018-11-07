@@ -1,3 +1,4 @@
+export DEBUILD_DPKG_BUILDPACKAGE_HOOK="install-build-deps"
 export DEBUILD_DPKG_BUILDPACKAGE_OPTS="-us -uc -i -I"
 export DEBUILD_PREPEND_PATH="/usr/lib/ccache"
 export DEBUILD_PRESERVE_ENVVARS="CCACHE_DIR"

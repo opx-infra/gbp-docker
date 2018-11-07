@@ -1,6 +1,6 @@
 # gbp-docker
 
-*git-buildpackage + docker*
+*Debian + Docker*
 
 gbp-docker is an opinionated Debian build and development environment in a container.
 
@@ -9,7 +9,7 @@ gbp-docker is an opinionated Debian build and development environment in a conta
 Given a directory named `./src` with a `debian/` directory, build it with
 
 ```bash
-docker run -it --rm -v "$(pwd):/mnt" -e UID=$(id -u) -e GID=$(id -g) opxhub/gbp:stretch bash -c 'cd src/; gbp buildpackage'
+docker run -it --rm -v "$(pwd):/mnt" -e UID=$(id -u) -e GID=$(id -g) opxhub/gbp:stretch bash -c 'cd src/; debuild'
 ```
 
 ## Quick start (develop)

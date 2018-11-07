@@ -14,6 +14,7 @@ RUN apt-get -qq update && apt-get -qq upgrade -y \
     apt-utils \
     ccache \
     debhelper \
+    devscripts \
     equivs \
     git-buildpackage \
     gosu \
