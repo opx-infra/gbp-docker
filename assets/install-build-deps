@@ -11,6 +11,8 @@ if [[ $# -eq 1 ]] && [[ ! -e $1/debian/control ]]; then
   exit 1
 fi
 
+echo "[INFO] Indexing local packages..."
+
 if [[ -n "${EXTRA_SOURCES}" ]]; then
   echo "${EXTRA_SOURCES}" | sudo tee /etc/apt/sources.list.d/20extra.list >/dev/null
 fi
@@ -30,7 +32,9 @@ sudo mkdir -p "$REPO"
 apt-ftparchive packages ../../../$DEBS 2>/dev/null | sudo tee $REPO/Packages >/dev/null
 apt-ftparchive sources ../../../$DEBS 2>/dev/null | sudo tee $REPO/Sources >/dev/null
 apt-ftparchive release $REPO 2>/dev/null | sudo tee $REPO/Release >/dev/null
-sudo apt-get -qq update
+
+echo "[INFO] Updating apt repositories..."
+sudo apt-get -q update
 
 # Support any number of arguments
 if [[ $# -eq 0 ]]; then
@@ -46,6 +50,8 @@ for repo in $repos; do
     echo "[Warning] $repo/debian/control does not exist." >&2
     continue
   fi
+
+  echo "[INFO] Installing build dependencies for ${repo}..."
 
   pushd "$repo" >/dev/null
   if ! mk-build-deps --install --remove --root-cmd sudo --tool "$dep_tool"; then
