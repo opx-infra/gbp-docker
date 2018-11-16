@@ -3,6 +3,7 @@ FROM opxhub/gbp:xenial
 # Add any tools required for development
 RUN apt-get -qq update && apt-get -qq upgrade -y && apt-get -qq install -y \
     bash-completion \
+    dh-make \
     fakechroot \
     python-apt \
     python-jinja2 \
