@@ -5,9 +5,9 @@ steps:
         files:
           - .buildkite/publish.bash
           - assets/bash_aliases
-          - assets/build
           - assets/entrypoint.sh
           - assets/install-build-deps
+          - assets/pool-packages
   - label: ":docker: Build Stretch"
     agents:
       queue: "docker"

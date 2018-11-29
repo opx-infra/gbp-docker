@@ -12,7 +12,7 @@ RUN apt-get -qq update && apt-get -qq upgrade -y && apt-get -qq install -y \
     vim \
  && apt-get -qq autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN git clone --depth 1 --branch installer/3.0.0 \
+RUN git clone --depth 1 --branch installer/3.1.0 \
     https://github.com/open-switch/opx-build /usr/local/opx-build
 ENV PATH "$PATH:/usr/local/opx-build/scripts"
 
