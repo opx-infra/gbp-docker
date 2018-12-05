@@ -2,6 +2,8 @@ FROM opxhub/gbp:stretch
 
 # Add any tools required for development
 RUN apt-get -qq update && apt-get -qq upgrade -y && apt-get -qq install -y \
+    abi-compliance-checker \
+    abi-dumper \
     bash-completion \
     dh-make \
     fakechroot \
