@@ -29,9 +29,11 @@ deb-src [trusted=yes] file://$REPO ./" \
   | sudo tee /etc/apt/sources.list.d/10local.list >/dev/null
 sudo mkdir -p "$REPO"
 # Index binary and source packages, create release file
+pushd $REPO >/dev/null 2>/dev/null
 apt-ftparchive packages ../../../$DEBS 2>/dev/null | sudo tee $REPO/Packages >/dev/null
-apt-ftparchive sources ../../../$DEBS 2>/dev/null | sudo tee $REPO/Sources >/dev/null
-apt-ftparchive release $REPO 2>/dev/null | sudo tee $REPO/Release >/dev/null
+apt-ftparchive sources  ../../../$DEBS 2>/dev/null | sudo tee $REPO/Sources  >/dev/null
+apt-ftparchive release           $REPO 2>/dev/null | sudo tee $REPO/Release  >/dev/null
+popd >/dev/null 2>/dev/null
 
 echo "[INFO] Updating apt repositories..."
 sudo apt-get -q update
